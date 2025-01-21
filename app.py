@@ -85,7 +85,7 @@ if uploaded_file is not None:
     similarities = cosine_similarity(query_vector, label_vectors).flatten()
     top_indices = np.argsort(similarities)[-5:][::-1]
 
-    st.write("### Top 5 Similar Labels and Images:")
+    st.write("### Top Similar Products:")
     for index in top_indices:
         label = labels[index]
         url = feature_to_url[label]
