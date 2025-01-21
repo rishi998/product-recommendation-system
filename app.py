@@ -7,10 +7,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import logging
 
-# Set up basic configuration for logging
 logging.basicConfig(level=logging.INFO)
 
-# Load the trained model
 MODEL_PATH = "trained_model_5000.keras"
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
@@ -19,33 +17,29 @@ except Exception as e:
     logging.error(f"Failed to load model: {e}")
     st.error("Failed to load model.")
 
-# Load the feature-to-URL JSON file for label lookup
 JSON_PATH = "features_to_url.json"
 try:
     with open(JSON_PATH, "r") as file:
         feature_to_url = json.load(file)
-        labels = list(feature_to_url.keys())  # Extract labels
+        labels = list(feature_to_url.keys()) 
     logging.info("JSON file loaded successfully.")
 except Exception as e:
     logging.error(f"Failed to load JSON file: {e}")
     st.error("Failed to load JSON data.")
 
-# Initialize a TF-IDF Vectorizer and fit it to the labels
 vectorizer = TfidfVectorizer()
 label_vectors = vectorizer.fit_transform(labels)
 
-# Preprocess the image for the model
 def preprocess_image(image):
     try:
-        img = image.resize((224, 224))  # Resize image to model input size
-        img_array = np.array(img) / 255.0  # Normalize pixel values
-        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        img = image.resize((224, 224))  
+        img_array = np.array(img) / 255.0  
+        img_array = np.expand_dims(img_array, axis=0)  
         return img_array
     except Exception as e:
         logging.error(f"Error in image preprocessing: {e}")
         st.error("Error in processing the image.")
 
-# Predict the label of the uploaded image
 def predict_label(image):
     try:
         preprocessed_image = preprocess_image(image)
@@ -58,11 +52,9 @@ def predict_label(image):
         logging.error(f"Error predicting label: {e}")
         st.error("Failed to predict label.")
         return None
-
-# Streamlit App UI
+    
 st.title("Product-Recommender-System")
 
-# Custom CSS to add a boundary around the UI
 st.markdown("""
 <style>
 body {
@@ -74,7 +66,6 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-# Create columns for the uploader and the image display
 col1, col2 = st.columns([1, 1])
 
 with col1:
@@ -82,13 +73,12 @@ with col1:
 with col2:
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", width=150)  # Reduced image size
+        st.image(image, caption="Uploaded Image", width=150) 
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     predicted_label = predict_label(image)
 
-    # Find the top 5 similar labels using cosine similarity
     query_vector = vectorizer.transform([predicted_label])
     similarities = cosine_similarity(query_vector, label_vectors).flatten()
     top_indices = np.argsort(similarities)[-5:][::-1]
@@ -99,6 +89,6 @@ if uploaded_file is not None:
         url = feature_to_url[label]
         if url:
             st.image(url, caption=f"Image for {label}")
-            st.markdown(f"[{label} URL]({url})")  # Display the URL as a clickable link
+            st.markdown(f"[{label} URL]({url})") 
         else:
             st.write(f"No images found for {label}")
